@@ -1,5 +1,5 @@
 ###테이블 생성, 삭제, 수정
-###데이터베이스 생성, 삭제, 수정
+###데이터베이스 사용자 생성, 조건에 따라 사용자 만들기, 생성, 삭제, 수정, 조회 비밀번호설정, 권한 부여, 삭제,테이블 컬럼 생성, 삭제, 수정
 
 
 
@@ -185,3 +185,335 @@ alter table test_table
 change test_column0 test_column2 int
 
 desc test_table;
+
+#--------------------------------------------------------------#
+#--------------------------sql 2일차----------------------------#
+#--------------------------------------------------------------#
+
+# 데이블에는 데이터(ROW)를 특정할수있는 고유값(primary key)이 있는게 좋음
+# 수동으로 넣어줄수도 있지만 auto_increment를 사용해서 생성할 수 있다.
+
+#자동으로 증가하는 컬럼 만들기
+#컬럼 이름은 id 데이터타입은 정수int로 만듬
+#데이터 타입뒤에 auto_increment primary key를 붙힘
+create table test(
+	id int auto_increment primary key
+); #primary key를 붙이지 않으면 에러가 남.
+desc test;
+show databases;
+
+#auto_increment 컬럼에 데이터 추가하기
+#auto_increment가 지정된 컬럼은 데이터를 추가할 때 값을 지정하지 않아도 됨. 1부터 값이 자동으로 생성되어 저장.
+insert into test values();
+select * from test;
+select id from test;
+select id.name from test;
+
+#AUTO_INCREMENT가 지정된 Column에 값을 정하여 데이터를 추가할 수도 있음.
+insert into test values(100);
+# 이후 값이 없는 데이터를 추가하면 id는 100보다 하나 큰 101가 됩니다.
+INSERT INTO test VALUES ();
+select id from test;
+
+#AUTO_INCREMENT Column 생성 값 살펴보기
+#id Column에 101 값을 갖는 행을 지우고 데이터를 추가하면 102이 값이 됨. 즉, 삭제한 값을 다시 사용하지 않습니다.
+delete from test where id = 101;
+select * from test;
+
+insert into test values();
+select * from test;
+
+#AUTO_INCREMENT Column 생성 값 살펴보기
+#test 테이블의 모든 데이터를 삭제함. 그리고 새로 데이터를 추가해보면 
+#AUTO_INCREMENT 값이 이전에 사용한 값보다 큰 값부터 이어서 시작됨.
+
+#mysql workbench를 재시작 했다면 아래 명령어 실행 필요.
+#use python;
+delete from test;
+select * from test;
+insert into test values();
+select * from test;
+
+#auto_increment 값 초기화 하기
+#AUTO_INCREMENT에 대해 초기화 또는 시작하는 번호를 정하고 싶다면 다음과 같이.  
+show table status; #1부터 시작하라는 뜻.
+show table status where name = 'test';
+
+# 테이블에 데이터가 1개도 없어야 한다.
+# 만약 테이블의 데이터가 있다면 걔 중 가장 큰 AUTO_INCREMENT보다 크게만 지정할 수 있음.
+alter table test auto_increment =1;
+select * from test;
+
+#AUTO_INCREMENT 값 수정하기
+#데이터 삭제와 업데이트 등과 같은 이유로 AUTO_INCREMENT로 설정된 컬럼의 숫자가 난잡하게 될 수 있음. 
+#이때 보기 좋게 1부터 순서대로 정렬할 수 있습니다.
+set @count=0;
+update test set id=@count:=@count+1;
+
+#테이블에 데이터 추가, INSERT
+#table1 테이블을 만듬.
+create table table1(
+column1 varchar(100),
+column2 varchar(100),
+column3 varchar(100)
+);
+desc table1;
+
+#데이터를 추가하는 명령어는 INSERT입니다. 모든 컬럼에 값을 넣을 때는 다음과 같이 쿼리를 작성.
+insert into table1(column1,column2,column3) values('a','aa','aaa');
+select * from table1;
+
+#모든 컬럼에 값을 넣을 때는 다음과 같이 컬럼을 나열하지 않아도 됨
+insert into table1 values('a','aa','aaa');
+select * from table1;
+
+#컬럼에 값을 부분적으로 넣을 때는 다음과 같이 쿼리를 작성.
+insert into table1(column1,column2) values('a,','aa');
+select * from table1;
+
+#테이블에 데이터 수정, UPDATE
+#데이터를 수정하는 명령어는 UPDATE. 모든 데이터의 특정 컬럼 값을 변경하고 싶다면 다음과 같이 합니다.
+update table1 set column1 = 'z';
+select * from table1;
+
+#특정 행의 값을 변경하고 싶다면 WHERE를 사용.
+update table1 set column1 ='x' where column2 ='aa';
+
+#여러 개의 컬럼 값을 변경하고 싶다면 쉼표로 구분해서 여러 개의 컬럼별 값을 지정.
+update table1 
+	set column1 ='y',
+    column2='yy'
+    where column3='aaa';
+    
+select * from table1;
+
+#데이터를 삭제하는 명령어는 DELETE입니다. 특정 데이터를 삭제하려면 WHERE를 사용.
+delete from table1 where column1 ='y';
+select * from table1;
+
+#WHERE가 없이 DELETE를 사용하면 모든 데이터를 삭제
+delete from table1;
+select * from table1;
+
+#테스트용 테이블 생성
+# 기존테이블 삭제(테이블 존재시)
+drop table if exists day_visitor_realtime;
+# 테이블생성
+create table if not exists day_visitor_realtime(
+ ipaddress varchar(16),
+ iptime_first datetime,
+ before_url varchar(250),
+ device_info varchar(40),
+ os_info varchar(40),
+ session_id varchar(80));
+# 데이터 타입의 길이에 맞게 데이터를 삽입할 때 테이블 명세를 보고 데이터 타입의 길이를 넘치지 않게 데이터를 넣어봐라.
+ insert into day_visitor_realtime(
+	ipaddress, iptime_first, before_url, device_info
+)values 
+#('12345678901234567', '2023-02-23 11:35:28', 'localhost', 'pc'), ipaddress varchar(16)에 17자리 값을 넣어서 에러 발생
+('192.168.0.1', '2023-02-23 11:35:28', 'localhost', 'pc')
+, ('192.168.0.2', '2023-02-23 11:36:28', 'localhost', 'iphone');
+select * from day_visitor_realtime;
+desc day_visitor_realtime;
+
+#데이터 타입의 길이를 초과해서 데이터를 삽입할때
+ insert into day_visitor_realtime(
+	ipaddress, iptime_first, before_url, device_info
+)values 
+('12345678901234567', '2023-02-23 11:35:28', 'localhost', 'pc');
+select * from day_visitor_realtime; # Error Code: 1406. Data too long for column 'ipaddress' at row 1 오류 발생
+
+#데이터 삽입하기
+#데이터 삽입
+insert into `python`.`day_visitor_realtime` (`session_id`) values('1234567890');
+insert into `python`.`day_visitor_realtime` (`session_id`) values('1234.567890');
+insert into `python`.`day_visitor_realtime` (`session_id`) values('123');
+insert into `python`.`day_visitor_realtime` (`session_id`) values('1234');
+insert into `python`.`day_visitor_realtime` (`session_id`) values('12345');
+select * from day_visitor_realtime;
+select count(*) from day_visitor_realtime;
+
+delete from `python`.`day_visitor_realtime` where session_id = '12345';
+update `python`.`day_visitor_realtime` set session_id = '12345';
+select * from day_visitor_realtime;
+
+#NOT NULL
+#테이블 컬럼에 데이터 타입을 NOT NULL을 추가해서 해당 컬럼의 값에 NULL이 오지 못하도록 강제함 NULL은 python의 None과 같다.
+ drop table if exists day_visitor_realtime;
+# 테이블생성
+create table if not exists day_visitor_realtime(
+ ipaddress varchar(16) not null,
+ iptime_first datetime,
+ before_url varchar(250),
+ device_info varchar(40),
+ os_info varchar(40),
+ session_id varchar(80));
+ 
+ #NULL
+ #INSERT시 값을 넣지 않게되면 NULL로서 표시됨. 즉 데이터가 존재하지 않다는 것.
+ insert into day_visitor_realtime (
+ ipaddress, iptime_first, before_url, device_info, os_info
+ /*session_id*/
+)
+VALUES (
+ 'asdf', NOW(), 'aa', 'asdf', 'aa'
+);
+SELECT * FROM day_visitor_realtime;
+
+#not null
+#not null 컬럼 값에 값을 넣지 않으면 오류 발생
+ insert into day_visitor_realtime (
+ /*ipaddress,*/
+ iptime_first, before_url, device_info, os_info
+ /*session_id*/
+)
+VALUES (
+ NOW(), 'aa', 'asdf', 'aa'
+);
+# Error Code: 1364. Field 'ipaddress' doesn't have a default value 오류 발생
+SELECT * FROM day_visitor_realtime;
+
+#primary key
+#기본키는 하나의 테이블에 있는 데이터들을 고유하게 식별하는 제약조건입니다.
+#기본키는 한개의 테이블에 하나만 생성가능.
+#기본키로 설정된 열에 중복된 값을 가질수 없으며 null값 또한 가질수 없음.
+#형식은 primary key(컬럼명1,컬럼명2,컬럼명3...)와 같이 작성할 수 있음.
+
+drop table if exists day_visitor_realtime;
+create table day_visitor_realtime (
+ id int,
+ ipaddress varchar(16),
+ iptime_first datetime,
+ before_url varchar(250),
+ device_info varchar(40),
+ os_info varchar(40),
+ session_id varchar(80),
+ primary key(id)
+);
+select *
+from day_visitor_realtime;
+
+# PRIMARY KEY에 같은 값을 두번 넣으면 오류가 발생.
+insert into day_visitor_realtime(
+id,ipaddress,iptime_first,before_url,device_info,os_info/*,session_id*/) 
+ values (1, 'asdf', NOW(), 'aa', 'asdf', 'aa')
+ , (1, 'asdf2', NOW(), 'aa2', 'asdf2', 'aa2');
+# Error Code: 1062. Duplicate entry '1' for key 'PRIMARY' 오류 발생
+
+#외래키(foreign key)는 참조하는 테이블의 컬럼에 존재하는 값만 사용하는 제약조건.
+#참조할수 있는 컬럼은 참조하는 테이블의 기본키이거나 unique한 컬럼만 가능. 
+# 참조할 테이블
+create table orders (
+  order_id int,
+  customer_id int,
+  order_date datetime,
+  primary key(order_id)
+); 
+
+insert into orders values(1,1,now());
+insert into orders values(2,1,now());
+insert into orders values(3,1,now());
+select *
+from orders;
+
+create table order_detail (
+  order_id int,
+  product_id int,
+  product_name varchar(200),
+  order_date datetime,
+  constraint fk_orders_orderid foreign key(order_id) references orders(order_id),
+  primary key(order_id, product_id)
+);
+
+ insert into order_detail(order_id, product_id,product_name) 
+ values(1, 100, 'iphone'),
+	   (1, 101, 'ipad');
+
+select *from order_detail;
+
+insert into order_detail(order_id, product_id,product_name) 
+ values(4, 100, 'iphone'),
+	   (4, 101, 'ipad');
+
+use employees;
+select *
+from departments;
+
+select *
+from titles;
+
+select distinct title
+from titles;
+
+select *
+from salaries
+where salary > 150000;
+
+select *
+from dept_manager
+where emp_no = 111133;
+
+select *
+from dept_manager
+where emp_no between 111133 and 111939;
+
+select *
+from employees
+where first_name like 'Geo%';
+
+select *
+from employees
+where first_name like '_e%;';
+
+
+select *
+from titles
+where title = 'Senior Engineer' and from_date > '2002-06-01';
+
+select *
+from titles
+order by emp_no;
+
+select max(emp_no)
+from titles;
+
+select min(emp_no)
+from titles;
+
+select count(emp_no)
+from titles;
+
+select *
+from employees as emp left join salaries as sal
+on emp.emp_no = sal.emp_no;
+
+select *
+from employees as emp right join salaries as sal
+on emp.emp_no = sal.emp_no;
+
+select title, count(*)
+from titles
+where to_date = '9999-01-01' 
+group by title
+;
+
+select * from titles;
+
+select title, count(*)
+from titles
+where to_date = '9999-01-01'
+group by title
+having count(*) < 10
+;
+
+use python;
+CREATE TABLE `users` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `email` varchar(255) COLLATE utf8_bin NOT NULL,
+    `password` varchar(255) COLLATE utf8_bin NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+AUTO_INCREMENT=1 ;
+
+select*
+from users;
